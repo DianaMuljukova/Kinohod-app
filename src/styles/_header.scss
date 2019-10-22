@@ -1,0 +1,19 @@
+.header {
+  display: flex;
+  align-items: center;
+  //position: fixed;
+  //top: 0;
+  //left: 0;
+  padding: 20px 0;
+  justify-content: space-around;
+  //box-shadow: 2px 1px 10px 5px #dddddd;
+
+  .logo {
+    font-size: 24px;
+    text-transform: uppercase;
+    font-weight: 700;
+    text-decoration: none;
+    color: #0053c0;
+    cursor: pointer;
+  }
+}

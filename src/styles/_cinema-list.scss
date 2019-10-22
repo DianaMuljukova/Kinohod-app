@@ -1,3 +1,43 @@
-.cinema-list {
-  padding-top: 300px;
+.cinema-item {
+    &_header {
+      display: flex;
+      align-items: center;
+
+      .title {
+        margin-right: 10px;
+        color: rgba(0,83,192,.85);
+        font-size: 22px;
+        font-weight: 600;
+      }
+
+      .label {
+        border: 1px solid #806127;
+        color: #806127;
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 0 3px;
+        border-radius: 2px;
+      }
+    }
+
+  &_button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #dddddd;
+    background-color: #edeeef;
+    border-radius: 50%;
+    color: #a6a6a6;
+    font-size: 30px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    margin-right: 20px;
+    transition: 0.3s;
+
+    &:hover {
+      background-color: rgba(0,83,192,.85);
+      color: white;
+      cursor: pointer;
+    }
+  }
 }

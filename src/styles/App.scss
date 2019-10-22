@@ -1,16 +1,32 @@
+@import "header";
+@import "cinema-list";
+
 body, html {
   margin: 0;
   font-family: Aktiv Grotesk,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;
   font-size: 16px;
-}
-
-.wrapper {
-  width: 100%;
   background-color: #edeeef;
 }
 
 .container {
-  width: 640px;
-  margin: 0 auto;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+
+
+  @media screen and (min-width: 1200px) {
+    max-width: 640px;
+  }
+}
+
+.row {
+  width: 100%;
+  display: flex;
+}
+
+a {
+  text-decoration: none;
 }
 

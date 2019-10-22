@@ -1,26 +1,98 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Component} from 'react';
+import './styles/App.scss';
+import Header from "./Header";
+import CinemaList from "./CinemaList";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            cities: [],
+            cinemas: [],
+            cityId: 0,
+            filter: 'title',
+            latitude: '',
+            longitude: '',
+            limit: 10,
+            page: 0
+        }
+    }
+
+    componentDidMount() {
+        this.getListOfCities();
+        this.getListOfCinemas();
+    }
+
+    async getListOfCities () {
+        let response = await fetch('https://api.kinohod.ru/api/restful/v1/cities');
+        let result = await response.json();
+
+        let oldCities = [...this.state.cities];
+        for (let i = 0; i < result.data.length; i++) {
+            oldCities.push(result.data[i].attributes.name)
+        }
+        this.setState({
+            cities: oldCities
+        })
+    }
+
+    async getListOfCinemas () {
+        const {cityId, filter, latitude, longitude, limit, page} = this.state;
+        const distanceFilter = filter === 'distance' ? `&latitude=${latitude}&longitude=${longitude}` : '';
+        let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`);
+        let result = await response.json();
+        let oldCinemas = [...this.state.cinemas];
+
+        this.setState({
+            cinemas: oldCinemas.concat(result.data)
+        })
+    }
+
+
+    getFilterWay = (e) => {
+        let latitude;
+        let longitude;
+
+        if (e.target.value === 'distance') {
+            navigator.geolocation.getCurrentPosition(  (position) => {
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+
+                this.setState({
+                    filter: 'distance',
+                    latitude: latitude,
+                    longitude: longitude,
+                });
+            });
+        } else {
+            this.setState({
+                filter: e.target.value
+            })
+        }
+
+    }
+
+
+    render() {
+        //console.log(this.state);
+        return (
+            <div className="container">
+
+                <Header
+                    cities={this.state.cities}
+                    getFilterWay={this.getFilterWay}
+                />
+
+                <div>
+                    <CinemaList
+                    cinemas={this.state.cinemas}
+                    />
+                </div>
+            </div>
+        );
+    }
 }
+
+
 
 export default App;
