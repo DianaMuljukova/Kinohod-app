@@ -16,19 +16,20 @@ const CinemaList = props => {
         return props.cinemas.map((item, i) => {
             const attributes = item.attributes;
             return (
-                <div className="cinema-list" key={i}>
-                    <div className="cinema-item">
-                        <div className="cinema-item_header">
-                            <div className="cinema-item_button">+</div>
-                            <a href="#" className="title">{attributes.shortTitle ? attributes.shortTitle : attributes.title}</a>
-                            <a href="#" className="label">
-                                {attributes.labels.map((item, i) => item.type === 'text' ? attributes.labels[i].text : '')}
-                            </a>
+                <div className="cinema-item" key={i}>
+                    <div className="cinema-item_header">
+                        <div className="cinema-item_button"><img className="plus" src="/pngtree-vector-plus-icon-png-image_515260.png" alt="plus"/></div>
+                        <a href="#" className="title">{attributes.shortTitle ? attributes.shortTitle : attributes.title}</a>
+                        <a href="#" className="label">
+                        {attributes.labels.map((item, i) => item.type === 'text' ? attributes.labels[i].text : '')}
+                    </a>
+                    </div>
+                    <div>
+                        <div className="map">
+                            <i className="fas fa-map-marker-alt"></i>
+                            <p className="address">{attributes.mall ? attributes.mall : attributes.address}</p>
                         </div>
-                        <div>
-                            <p>{attributes.mall ? attributes.mall : attributes.address}</p>
-                            <p>{printSubway(attributes.subway)}</p>
-                        </div>
+                        <p className="subway">{printSubway(attributes.subway)}</p>
                     </div>
                 </div>
             )
@@ -37,7 +38,9 @@ const CinemaList = props => {
     };
 
     return (
-        renderCinemaList()
+        <div className="cinema-list">
+            {renderCinemaList()}
+        </div>
     )
 };
 

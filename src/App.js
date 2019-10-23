@@ -29,7 +29,7 @@ class App extends Component {
 
         let oldCities = [...this.state.cities];
         for (let i = 0; i < result.data.length; i++) {
-            oldCities.push(result.data[i].attributes.name)
+            oldCities.push(result.data[i])
         }
         this.setState({
             cities: oldCities
@@ -41,6 +41,7 @@ class App extends Component {
         const distanceFilter = filter === 'distance' ? `&latitude=${latitude}&longitude=${longitude}` : '';
         let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`);
         let result = await response.json();
+        console.log(result);
         let oldCinemas = [...this.state.cinemas];
 
         this.setState({
@@ -49,7 +50,7 @@ class App extends Component {
     }
 
 
-    getFilterWay = (e) => {
+    getFilterWay = e => {
         let latitude;
         let longitude;
 
@@ -69,23 +70,32 @@ class App extends Component {
                 filter: e.target.value
             })
         }
+    };
 
-    }
+    getCity = e => {
+        this.setState({
+            cityId: e.target.value
+        }, () => {
+            this.getListOfCinemas()
+            //здесь приходят новые синемас и стейт синемас меняется
+        });
+    };
 
 
     render() {
-        //console.log(this.state);
+       // console.log(this.state);
         return (
             <div className="container">
 
                 <Header
                     cities={this.state.cities}
                     getFilterWay={this.getFilterWay}
+                    getCity={this.getCity}
                 />
 
                 <div>
                     <CinemaList
-                    cinemas={this.state.cinemas}
+                        cinemas={this.state.cinemas}
                     />
                 </div>
             </div>
