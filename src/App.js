@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import './styles/App.scss';
 import Header from "./Header";
 import CinemaList from "./CinemaList";
+import Loader from "./Loader";
 
 class App extends Component {
     constructor(props) {
@@ -9,18 +10,23 @@ class App extends Component {
         this.state = {
             cities: [],
             cinemas: [],
-            cityId: 0,
+            cityId: 1,
             filter: 'title',
             latitude: '',
             longitude: '',
             limit: 10,
-            page: 0
+            page: 0,
+            loading: true
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.getListOfCities();
-        this.getListOfCinemas();
+        let listOfCinemas = await this.getListOfCinemas();
+        this.setState({
+            cinemas: listOfCinemas,
+            loading: false
+        })
     }
 
     async getListOfCities () {
@@ -40,13 +46,10 @@ class App extends Component {
         const {cityId, filter, latitude, longitude, limit, page} = this.state;
         const distanceFilter = filter === 'distance' ? `&latitude=${latitude}&longitude=${longitude}` : '';
         let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`);
+        console.log(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`)
         let result = await response.json();
-        console.log(result);
-        let oldCinemas = [...this.state.cinemas];
-
-        this.setState({
-            cinemas: oldCinemas.concat(result.data)
-        })
+        //let oldCinemas = [...this.state.cinemas];
+        return result.data;
     }
 
 
@@ -63,7 +66,8 @@ class App extends Component {
                     filter: 'distance',
                     latitude: latitude,
                     longitude: longitude,
-                });
+                    loading: true
+                }, this.getNewListOfCinemas);
             });
         } else {
             this.setState({
@@ -75,15 +79,21 @@ class App extends Component {
     getCity = e => {
         this.setState({
             cityId: e.target.value
-        }, () => {
-            this.getListOfCinemas()
-            //здесь приходят новые синемас и стейт синемас меняется
-        });
+        }, this.getNewListOfCinemas);
     };
 
 
+
+    async getNewListOfCinemas () {
+        let listOfCinemas = await this.getListOfCinemas();
+        this.setState({
+            cinemas: listOfCinemas,
+            loading: false
+        })
+    }
+
     render() {
-       // console.log(this.state);
+        console.log(this.state);
         return (
             <div className="container">
 
@@ -91,13 +101,15 @@ class App extends Component {
                     cities={this.state.cities}
                     getFilterWay={this.getFilterWay}
                     getCity={this.getCity}
+                    cityId={this.state.cityId}
                 />
-
-                <div>
-                    <CinemaList
-                        cinemas={this.state.cinemas}
-                    />
-                </div>
+                {this.state.loading
+                    ? <Loader/>
+                    : <div>
+                        <CinemaList
+                            cinemas={this.state.cinemas}
+                        />
+                    </div>}
             </div>
         );
     }

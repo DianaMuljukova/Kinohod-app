@@ -12,7 +12,6 @@ const CinemaList = props => {
 
     const renderCinemaList = () => {
 
-        console.log(props);
         return props.cinemas.map((item, i) => {
             const attributes = item.attributes;
             return (

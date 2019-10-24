@@ -20,7 +20,7 @@ const Header = props => {
     return (
         <div className="header row">
             <a href="#" className="logo">Киноход</a>
-            <select onChange={sendCity}>
+            <select onChange={sendCity} value={props.cityId}>
                 {renderCitiesSelect()}
             </select>
 
