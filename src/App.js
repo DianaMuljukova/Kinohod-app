@@ -3,6 +3,7 @@ import './styles/App.scss';
 import Header from "./Header";
 import CinemaList from "./CinemaList";
 import Loader from "./Loader";
+import Popup from "./Popup";
 
 class App extends Component {
     constructor(props) {
@@ -16,11 +17,14 @@ class App extends Component {
             longitude: '',
             limit: 10,
             page: 0,
-            loading: true
+            loading: true,
+            openPopup: false,
+            offset: 600
         }
     }
 
     async componentDidMount() {
+        window.addEventListener('scroll', this.handleScroll);
         this.getListOfCities();
         let listOfCinemas = await this.getListOfCinemas();
         this.setState({
@@ -50,25 +54,14 @@ class App extends Component {
         let result = await response.json();
         //let oldCinemas = [...this.state.cinemas];
         return result.data;
-    }
-
+    };
 
     getFilterWay = e => {
-        let latitude;
-        let longitude;
-
         if (e.target.value === 'distance') {
-            navigator.geolocation.getCurrentPosition(  (position) => {
-                latitude = position.coords.latitude;
-                longitude = position.coords.longitude;
-
-                this.setState({
-                    filter: 'distance',
-                    latitude: latitude,
-                    longitude: longitude,
-                    loading: true
-                }, this.getNewListOfCinemas);
-            });
+            this.setState({
+                openPopup: true,
+                filter: e.target.value
+            })
         } else {
             this.setState({
                 filter: e.target.value
@@ -76,9 +69,33 @@ class App extends Component {
         }
     };
 
+    getAnswer = str => {
+        console.log(str);
+        if (str === 'ok') {
+            let latitude;
+            let longitude;
+            navigator.geolocation.getCurrentPosition(  (position) => {
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+
+                this.setState({
+                    latitude: latitude,
+                    longitude: longitude,
+                    openPopup: false,
+                    loading: true
+                }, this.getNewListOfCinemas);
+            });
+        } else {
+            this.setState({
+                openPopup: false
+            })
+        }
+    };
+
     getCity = e => {
         this.setState({
-            cityId: e.target.value
+            cityId: e.target.value,
+            loading: true
         }, this.getNewListOfCinemas);
     };
 
@@ -92,25 +109,53 @@ class App extends Component {
         })
     }
 
+     handleScroll = async () => {
+        if (window.pageYOffset >= this.state.offset) {
+            console.log(window.pageYOffset)
+            let listOfCinemas = [...this.state.cinemas];
+            let newListOfCinemas = await this.getListOfCinemas();
+            this.setState({
+                limit: this.state.limit + 10,
+                offset: this.state.offset + 600,
+                cinemas:listOfCinemas.concat(newListOfCinemas)
+            })
+        }
+    };
+
+
+
     render() {
+
         console.log(this.state);
         return (
-            <div className="container">
+            <>
+                <div className="wrapper" style={{backgroundColor: this.state.openPopup ? '#222222' : '', width: this.state.openPopup ? '100%' : ''}}>
+                </div>
+                <div className="container">
 
-                <Header
-                    cities={this.state.cities}
-                    getFilterWay={this.getFilterWay}
-                    getCity={this.getCity}
-                    cityId={this.state.cityId}
-                />
-                {this.state.loading
-                    ? <Loader/>
-                    : <div>
-                        <CinemaList
-                            cinemas={this.state.cinemas}
-                        />
-                    </div>}
-            </div>
+                    <Header
+                        cities={this.state.cities}
+                        getFilterWay={this.getFilterWay}
+                        getCity={this.getCity}
+                        cityId={this.state.cityId}
+                    />
+
+                    {this.state.loading
+                        ? <Loader/>
+                        : <div>
+                            <CinemaList
+                                cinemas={this.state.cinemas}
+                            />
+                        </div>}
+                    {
+                        this.state.openPopup
+                            ? <Popup
+                                getAnswer={this.getAnswer}
+                            />
+                            : null
+                    }
+                </div>
+            </>
         );
     }
 }
