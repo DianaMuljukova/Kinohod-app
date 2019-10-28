@@ -12,7 +12,7 @@ class App extends Component {
             cities: [],
             cinemas: [],
             cityId: 1,
-            filter: 'title',
+            filter: localStorage.getItem('filter') ? localStorage.getItem('filter') : 'title',
             latitude: '',
             longitude: '',
             limit: 10,
@@ -47,26 +47,24 @@ class App extends Component {
     }
 
     async getListOfCinemas () {
-        const {cityId, filter, latitude, longitude, limit, page} = this.state;
+        console.log('first ' + this.state.filter);
+        const {filter, latitude, longitude, limit, page} = this.state;
+        let cityId = localStorage.getItem('cityId') || 1;
         const distanceFilter = filter === 'distance' ? `&latitude=${latitude}&longitude=${longitude}` : '';
-        let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`);
-        console.log(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`)
+        let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page}`);
+        console.log(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`);
         let result = await response.json();
         //let oldCinemas = [...this.state.cinemas];
         return result.data;
     };
 
     getFilterWay = e => {
-        if (e.target.value === 'distance') {
-            this.setState({
-                openPopup: true,
-                filter: e.target.value
-            })
-        } else {
-            this.setState({
-                filter: e.target.value
-            })
-        }
+        localStorage.setItem('filter', e.target.value);
+        this.setState({
+            filter: e.target.value,
+            openPopup: e.target.value === 'distance',
+            loading: true
+        },  e.target.value !== 'distance' ? this.getNewListOfCinemas : () => {})
     };
 
     getAnswer = str => {
@@ -93,10 +91,13 @@ class App extends Component {
     };
 
     getCity = e => {
+        localStorage.setItem('cityId', e.target.value);
+        let cityId = localStorage.getItem('cityId');
         this.setState({
-            cityId: e.target.value,
+            cityId: cityId,
             loading: true
         }, this.getNewListOfCinemas);
+
     };
 
 
@@ -117,11 +118,10 @@ class App extends Component {
             this.setState({
                 limit: this.state.limit + 10,
                 offset: this.state.offset + 600,
-                cinemas:listOfCinemas.concat(newListOfCinemas)
+                cinemas: listOfCinemas.concat(newListOfCinemas)
             })
         }
     };
-
 
 
     render() {
@@ -137,7 +137,8 @@ class App extends Component {
                         cities={this.state.cities}
                         getFilterWay={this.getFilterWay}
                         getCity={this.getCity}
-                        cityId={this.state.cityId}
+                        cityId={localStorage.getItem('cityId') ? localStorage.getItem('cityId') : this.state.cityId}
+                        filter={localStorage.getItem('filter') ? localStorage.getItem('filter') : this.state.filter}
                     />
 
                     {this.state.loading

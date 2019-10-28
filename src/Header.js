@@ -24,7 +24,7 @@ const Header = props => {
                 {renderCitiesSelect()}
             </select>
 
-            <select onChange={sendValue}>
+            <select onChange={sendValue} value={props.filter}>
                 <option value="title">По заголовку</option>
                 <option value="distance">По расстоянию</option>
             </select>
