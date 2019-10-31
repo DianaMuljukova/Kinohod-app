@@ -11,8 +11,6 @@ class App extends Component {
         this.state = {
             cities: [],
             cinemas: [],
-            cityId: 1,
-            filter: localStorage.getItem('filter') ? localStorage.getItem('filter') : 'title',
             latitude: '',
             longitude: '',
             limit: 10,
@@ -24,12 +22,20 @@ class App extends Component {
     }
 
     async componentDidMount() {
+        if (localStorage.getItem('cityId') === null) {
+            localStorage.setItem('cityId', '1');
+        }
+
+        if (localStorage.getItem('filter') === null) {
+            localStorage.setItem('filter', 'title');
+        }
         window.addEventListener('scroll', this.handleScroll);
         this.getListOfCities();
         let listOfCinemas = await this.getListOfCinemas();
         this.setState({
             cinemas: listOfCinemas,
-            loading: false
+            loading: false,
+            page: 1
         })
     }
 
@@ -47,12 +53,12 @@ class App extends Component {
     }
 
     async getListOfCinemas () {
-        console.log('first ' + this.state.filter);
-        const {filter, latitude, longitude, limit, page} = this.state;
-        let cityId = localStorage.getItem('cityId') || 1;
+        const {latitude, longitude, limit, page} = this.state;
+        let cityId = localStorage.getItem('cityId');
+        let filter = localStorage.getItem('filter');
         const distanceFilter = filter === 'distance' ? `&latitude=${latitude}&longitude=${longitude}` : '';
-        let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page}`);
-        console.log(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page + 1}`);
+       console.log(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${limit * page}`)
+        let response = await fetch(`https://api.kinohod.ru/api/restful/v1/cinemas?city=${cityId}&sort=${filter}${distanceFilter}&limit=${limit}&rangeStart=${0}`);
         let result = await response.json();
         //let oldCinemas = [...this.state.cinemas];
         return result.data;
@@ -61,14 +67,13 @@ class App extends Component {
     getFilterWay = e => {
         localStorage.setItem('filter', e.target.value);
         this.setState({
-            filter: e.target.value,
             openPopup: e.target.value === 'distance',
-            loading: true
+            loading: true,
+            page: 0
         },  e.target.value !== 'distance' ? this.getNewListOfCinemas : () => {})
     };
 
     getAnswer = str => {
-        console.log(str);
         if (str === 'ok') {
             let latitude;
             let longitude;
@@ -95,7 +100,8 @@ class App extends Component {
         let cityId = localStorage.getItem('cityId');
         this.setState({
             cityId: cityId,
-            loading: true
+            loading: true,
+            page: 0
         }, this.getNewListOfCinemas);
 
     };
@@ -110,23 +116,30 @@ class App extends Component {
         })
     }
 
-     handleScroll = async () => {
-        if (window.pageYOffset >= this.state.offset) {
-            console.log(window.pageYOffset)
-            let listOfCinemas = [...this.state.cinemas];
-            let newListOfCinemas = await this.getListOfCinemas();
-            this.setState({
-                limit: this.state.limit + 10,
-                offset: this.state.offset + 600,
-                cinemas: listOfCinemas.concat(newListOfCinemas)
-            })
+    handleScroll = async () => {
+        //console.log(document.documentElement.scrollHeight - document.documentElement.scrollTop - document.documentElement.clientHeight <= this.state.offset)
+        console.log(document.documentElement.scrollHeight);
+        let block = false;
+        if (document.documentElement.scrollHeight - document.documentElement.scrollTop - document.documentElement.clientHeight <= this.state.offset && block === false) {
+            block = true;
+            console.log('load')
+
+            if (!this.state.loading) {
+                let listOfCinemas = [...this.state.cinemas];
+                let newListOfCinemas = await this.getListOfCinemas();
+                this.setState({
+                    page: this.state.page + 1,
+                    cinemas: listOfCinemas.concat(newListOfCinemas)
+                })
+            }
+
         }
     };
 
 
     render() {
+console.log(this.state.page)
 
-        console.log(this.state);
         return (
             <>
                 <div className="wrapper" style={{backgroundColor: this.state.openPopup ? '#222222' : '', width: this.state.openPopup ? '100%' : ''}}>
@@ -137,8 +150,8 @@ class App extends Component {
                         cities={this.state.cities}
                         getFilterWay={this.getFilterWay}
                         getCity={this.getCity}
-                        cityId={localStorage.getItem('cityId') ? localStorage.getItem('cityId') : this.state.cityId}
-                        filter={localStorage.getItem('filter') ? localStorage.getItem('filter') : this.state.filter}
+                        cityId={localStorage.getItem('cityId')}
+                        filter={localStorage.getItem('filter')}
                     />
 
                     {this.state.loading
